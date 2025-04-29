@@ -1,0 +1,74 @@
+CREATE DATABASE IF NOT EXISTS etudient;
+USE etudient;
+
+-- Users table (for both teachers and students)
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    user_type ENUM('teacher', 'student') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Student groups table
+CREATE TABLE student_groups (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    member1_id INT NOT NULL,
+    member2_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (member1_id) REFERENCES users(id),
+    FOREIGN KEY (member2_id) REFERENCES users(id)
+);
+
+-- Projects table
+CREATE TABLE projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    teacher_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('available', 'taken') DEFAULT 'available',
+    FOREIGN KEY (teacher_id) REFERENCES users(id)
+);
+
+-- Proposals table
+CREATE TABLE proposals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    student_group_id INT NOT NULL,
+    proposal_text TEXT,
+    status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (student_group_id) REFERENCES student_groups(id)
+);
+
+-- Final selections table
+CREATE TABLE final_selections (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    student_group_id INT NOT NULL,
+    selected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (student_group_id) REFERENCES student_groups(id),
+    UNIQUE (student_group_id)
+);
+
+
+
+
+
+
+
+
+ALTER TABLE projects ADD COLUMN suggested_by INT NULL AFTER teacher_id;
+ALTER TABLE projects ADD COLUMN is_suggestion BOOLEAN DEFAULT FALSE AFTER status;
+ALTER TABLE projects ADD COLUMN suggestion_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' AFTER is_suggestion;
+
+
+
+ALTER TABLE projects MODIFY teacher_id INT NULL;
